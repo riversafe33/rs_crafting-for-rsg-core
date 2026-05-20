@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Menú de Crafteo</title>
+  <style>
+    :root {
+      --gold: #c9a55a;
+      --gold-light: #e8c97a;
+      --gold-dark: #8a6c35;
+      --bg-deep: rgba(14, 10, 5, 0.97);
+      --bg-card: rgba(28, 20, 10, 0.92);
+      --bg-card-hover: rgba(40, 30, 15, 0.95);
+      --bg-surface: rgba(22, 15, 7, 0.98);
+      --text-primary: #d4aa6a;
+      --text-secondary: #8a6c3d;
+      --text-dim: #5a4520;
+      --border-subtle: rgba(180, 140, 70, 0.25);
+      --border-main: rgba(180, 140, 70, 0.55);
+      --border-bright: rgba(200, 165, 90, 0.85);
+      --scrollbar: rgba(180, 140, 60, 0.35);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Georgia', serif;
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: auto;
+      font-feature-settings: "kern" 1, "liga" 1, "lnum" 1;
+    }
+
+    .hidden { display: none !important; }
+
+    html { font-size: 14px; }
+    @media (min-height: 900px)  { html { font-size: 15px; } }
+    @media (min-height: 1200px) { html { font-size: 17px; } }
+
+    #crafting-container {
+      position: absolute;
+      top: 50%;
+      right: 2.5%;
+      transform: translateY(-50%);
+      width: clamp(300px, 34vw, 520px);
+      height: clamp(480px, 78vh, 900px);
+      background: var(--bg-deep);
+      border: 1px solid var(--border-main);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.85);
+    }
+
+    #crafting-container::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold-light), var(--gold), var(--gold-light), transparent);
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .menu-header {
+      padding: 1.4rem 1.6rem 0.8rem;
+      flex-shrink: 0;
+      text-align: center;
+      border-bottom: 1px solid var(--border-subtle);
+      position: relative;
+    }
+
+    .header-ornament {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .ornament-line {
+      flex: 1; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-main));
+    }
+    .ornament-line.right {
+      background: linear-gradient(90deg, var(--border-main), transparent);
+    }
+
+    .ornament-diamond {
+      width: 6px; height: 6px;
+      background: var(--gold);
+      transform: rotate(45deg);
+      opacity: 0.7;
+    }
+
+    .menu-header h1 {
+      font-size: 1.4rem;
+      font-weight: 400;
+      color: var(--gold-light);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .menu-header p {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-top: 0.25rem;
+    }
+
+    .category-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      justify-content: center;
+      padding: 0.75rem 1rem;
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .category-btn {
+      background: transparent;
+      border: 1px solid var(--border-main);
+      border-radius: 6px;
+      padding: 0.35rem 0.85rem;
+      font-size: 0.72rem;
+      font-family: 'Georgia', serif;
+      color: var(--text-secondary);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+
+    .category-btn:hover,
+    .category-btn.active {
+      background: rgba(180, 140, 60, 0.15);
+      border-color: var(--gold);
+      color: var(--gold-light);
+    }
+
+    #items-grid {
+      flex: 1 1 0;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(clamp(140px, 42%, 200px), 1fr));
+      gap: 0.7rem;
+      padding: 0.85rem;
+      align-content: start;
+    }
+
+    #items-grid::-webkit-scrollbar { width: 4px; }
+    #items-grid::-webkit-scrollbar-track { background: transparent; }
+    #items-grid::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 4px; }
+
+    .item-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 0.9rem 0.75rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.45rem;
+      cursor: default;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+      min-height: 200px;
+      height: fit-content;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .item-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-main), transparent);
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+    }
+
+    .item-card:hover {
+      border-color: var(--border-main);
+      background: var(--bg-card-hover);
+    }
+
+    .item-card:hover::before { opacity: 1; }
+
+    .item-image-wrap {
+      width: clamp(56px, 5vw, 80px);
+      height: clamp(56px, 5vw, 80px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(180, 140, 60, 0.06);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 6px;
+    }
+
+    .item-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .item-name {
+      font-size: 0.75rem;
+      color: var(--text-primary);
+      text-align: center;
+      letter-spacing: 0.04em;
+      line-height: 1.3;
+    }
+
+    .quantity-input {
+      width: 100%;
+      padding: 0.35rem 0.5rem;
+      font-size: 0.75rem;
+      border-radius: 5px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(10, 7, 3, 0.6);
+      color: var(--text-primary);
+      text-align: center;
+      font-family: 'Courier New', monospace;
+      font-feature-settings: "lnum" 1, "tnum" 1;
+      transition: border-color 0.2s;
+      -moz-appearance: textfield;
+    }
+
+    .quantity-input:focus {
+      outline: none;
+      border-color: var(--gold-dark);
+    }
+
+    .quantity-input::-webkit-outer-spin-button,
+    .quantity-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    .card-actions {
+      display: flex;
+      gap: 0.35rem;
+      width: 100%;
+    }
+
+    .craft-btn {
+      flex: 1;
+      padding: 0.38rem 0.4rem;
+      font-size: 0.68rem;
+      font-family: 'Georgia', serif;
+      border-radius: 5px;
+      background: rgba(180, 140, 60, 0.20);
+      color: var(--gold-light);
+      border: 1px solid var(--border-main);
+      cursor: pointer;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+
+    .craft-btn:hover {
+      background: rgba(200, 165, 90, 0.30);
+      border-color: var(--gold);
+      color: #f5e0a0;
+    }
+
+    .toggle-ingredients-btn {
+      padding: 0.38rem 0.4rem;
+      font-size: 0.68rem;
+      font-family: 'Georgia', serif;
+      border-radius: 5px;
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+      white-space: nowrap;
+    }
+
+    .toggle-ingredients-btn:hover {
+      background: rgba(180, 140, 60, 0.1);
+      border-color: var(--border-main);
+      color: var(--text-primary);
+    }
+
+    #close-btn {
+      margin: 0.5rem 1rem 0.9rem;
+      flex-shrink: 0;
+      padding: 0.5rem;
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      font-size: 0.68rem;
+      font-family: 'Georgia', serif;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+    }
+
+    #close-btn:hover {
+      border-color: rgba(180, 140, 60, 0.4);
+      color: var(--text-secondary);
+      background: rgba(180, 140, 60, 0.06);
+    }
+
+    #ingredients-panel {
+      position: absolute;
+      bottom: 6%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: clamp(260px, 52vw, 520px);
+      max-height: clamp(220px, 38vh, 380px);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-main);
+      border-radius: 12px;
+      padding: 1rem;
+      z-index: 999;
+      overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+    }
+
+    #ingredients-panel::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold-light), transparent);
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    #ingredients-panel::-webkit-scrollbar { width: 4px; }
+    #ingredients-panel::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 4px; }
+
+    .ingredients-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.8rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    #ingredients-title {
+      font-size: 0.85rem;
+      color: var(--gold-light);
+      letter-spacing: 0.06em;
+    }
+
+    #close-ingredients-btn {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      font-size: 0.65rem;
+      width: 22px; height: 22px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+      flex-shrink: 0;
+    }
+
+    #close-ingredients-btn:hover {
+      border-color: var(--border-main);
+      color: var(--text-primary);
+      background: rgba(180, 140, 60, 0.1);
+    }
+
+    .materials {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      justify-content: flex-start;
+    }
+
+    .material {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+      width: clamp(70px, 18%, 90px);
+    }
+
+    .material-img-wrap {
+      position: relative;
+      width: 52px; height: 52px;
+      background: rgba(180, 140, 60, 0.06);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .material img {
+      width: 38px; height: 38px;
+      object-fit: contain;
+    }
+
+    .material-count {
+      position: absolute;
+      bottom: -2px; right: -2px;
+      font-size: 0.82rem;
+      color: var(--gold);
+      font-weight: bold;
+      font-family: 'Courier New', monospace;
+      font-feature-settings: "lnum" 1, "tnum" 1;
+      background: rgba(14, 10, 5, 0.9);
+      border-radius: 3px;
+      padding: 0 3px;
+      line-height: 1.4;
+    }
+
+    .material-label {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .container-prompmenu,
+    .container-prompprop {
+      position: absolute;
+      right: 2%;
+      top: 92%;
+      transform: translateY(-50%);
+      padding: 0.5rem 0.85rem;
+      background: rgba(10, 7, 3, 0.9);
+      border: 1px solid var(--border-main);
+      border-radius: 8px;
+      display: none;
+      z-index: 1000;
+    }
+
+    .title-prompmenu, .title-prompprop {
+      font-size: 0.8rem;
+      color: var(--gold);
+      letter-spacing: 0.05em;
+    }
+
+    #crafting-progress {
+      position: absolute;
+      bottom: 4%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: clamp(180px, 22vw, 280px);
+      text-align: center;
+      z-index: 9999;
+      background: rgba(14, 10, 5, 0.92);
+      border: 1px solid var(--border-main);
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+    }
+
+    .progress-text {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 3px;
+      background: rgba(180, 140, 60, 0.15);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--gold-dark), var(--gold-light));
+      transition: width 0.1s linear;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div id="crafting-container" class="hidden">
+    <div class="menu-header">
+      <div class="header-ornament">
+        <div class="ornament-line"></div>
+        <div class="ornament-diamond"></div>
+        <div class="ornament-line right"></div>
+      </div>
+      <h1 id="craftingMenuTitle">Menú de Crafteo</h1>
+      <p id="selectCategoryText">Selecciona una categoría</p>
+    </div>
+    <div id="category-buttons" class="category-list"></div>
+    <div id="items-grid"></div>
+    <button id="close-btn">Cerrar</button>
+  </div>
+
+  <div id="ingredients-panel" class="hidden">
+    <div class="ingredients-header">
+      <h3 id="ingredients-title"></h3>
+      <button id="close-ingredients-btn">✖</button>
+    </div>
+    <div id="ingredients-list" class="materials"></div>
+  </div>
+
+  <div class="container-prompmenu">
+    <div class="title-prompmenu" id="prompmenuText"></div>
+  </div>
+
+  <div class="container-prompprop">
+    <div class="title-prompprop" id="promppropText"></div>
+  </div>
+
+  <div id="crafting-progress" class="hidden">
+    <div class="progress-text" id="craftingProgressText">Crafteando...</div>
+    <div class="progress-bar">
+      <div class="progress-fill"></div>
+    </div>
+  </div>
+
+  <script>
+    let currentCategories = {};
+    let progressInterval;
+    let prompt = {};
+
+    function createItemCard(item) {
+      const card = document.createElement("div");
+      card.className = "item-card";
+      card.innerHTML = `
+        <div class="item-image-wrap">
+          <img src="${item.image}" class="item-image" loading="lazy" />
+        </div>
+        <div class="item-name">${item.label}</div>
+        <input type="number" min="1" placeholder="${prompt.quantityPlaceholder || 'Cantidad'}" class="quantity-input" />
+        <div class="card-actions">
+          <button class="craft-btn">${prompt.craftButton || 'Craftear'}</button>
+          <button class="toggle-ingredients-btn">${prompt.ingredientsButton || 'Ver'}</button>
+        </div>
+      `;
+
+      card.querySelector(".craft-btn").addEventListener("click", () => {
+        const quantity = card.querySelector(".quantity-input").value;
+        fetch(`https://${GetParentResourceName()}/craftItem`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ item: item.value, quantity })
+        });
+        document.getElementById("crafting-container").classList.add("hidden");
+        document.getElementById("ingredients-panel").classList.add("hidden");
+      });
+
+      card.querySelector(".toggle-ingredients-btn").addEventListener("click", () => {
+        const panel = document.getElementById("ingredients-panel");
+        document.getElementById("ingredients-title").textContent = item.label;
+        const frag = document.createDocumentFragment();
+        item.descriptionimages.forEach(mat => {
+          const div = document.createElement("div");
+          div.className = "material";
+          div.innerHTML = `
+            <div class="material-img-wrap">
+              <img src="${mat.src}" loading="lazy" />
+              <span class="material-count">${mat.count}</span>
+            </div>
+            <span class="material-label">${mat.text}</span>
+          `;
+          frag.appendChild(div);
+        });
+        const list = document.getElementById("ingredients-list");
+        list.innerHTML = "";
+        list.appendChild(frag);
+        panel.classList.remove("hidden");
+      });
+
+      return card;
+    }
+
+    function renderItemsToGrid(gridEl, items) {
+      const frag = document.createDocumentFragment();
+      items.forEach(item => frag.appendChild(createItemCard(item)));
+      gridEl.innerHTML = "";
+      gridEl.appendChild(frag);
+    }
+
+    window.addEventListener('message', function (event) {
+      const data = event.data;
+
+      if (data.prompt) { prompt = data.prompt; applyPromptTexts(); }
+
+      if (data.type === 'showProgressBar') {
+        const bar  = document.getElementById('crafting-progress');
+        const fill = bar.querySelector('.progress-fill');
+        bar.classList.remove('hidden');
+        fill.style.width = '0%';
+        let elapsed = 0;
+        clearInterval(progressInterval);
+        progressInterval = setInterval(() => {
+          elapsed += 100;
+          fill.style.width = Math.min((elapsed / data.duration) * 100, 100) + '%';
+          if (elapsed >= data.duration) clearInterval(progressInterval);
+        }, 100);
+      }
+
+      if (data.type === 'hideProgressBar') {
+        document.getElementById('crafting-progress').classList.add('hidden');
+        clearInterval(progressInterval);
+      }
+
+      if (data.type === "openCraftingMenuGrouped") {
+        const container       = document.getElementById("crafting-container");
+        const categoryButtons = document.getElementById("category-buttons");
+        const grid            = document.getElementById("items-grid");
+
+        currentCategories = data.categories;
+
+        const catFrag = document.createDocumentFragment();
+        for (const category of Object.keys(currentCategories)) {
+          const btn = document.createElement("button");
+          btn.className = "category-btn";
+          btn.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+          btn.addEventListener("click", () => {
+            categoryButtons.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderItemsToGrid(grid, currentCategories[category]);
+          });
+          catFrag.appendChild(btn);
+        }
+        categoryButtons.innerHTML = "";
+        categoryButtons.appendChild(catFrag);
+
+        if (data.defaultCategory && currentCategories[data.defaultCategory]) {
+          const firstBtn = categoryButtons.querySelector('.category-btn');
+          if (firstBtn) firstBtn.classList.add('active');
+          renderItemsToGrid(grid, currentCategories[data.defaultCategory]);
+        }
+
+        container.classList.remove("hidden");
+      }
+
+      if (data.type === 'openCraftingMenuDirect') {
+        const container = document.getElementById("crafting-container");
+        document.getElementById("category-buttons").innerHTML = "";
+        renderItemsToGrid(document.getElementById("items-grid"), data.items);
+        container.classList.remove("hidden");
+      }
+
+      if (data.type === 'showPrompmenu') {
+        document.getElementById('prompmenuText').textContent = data.text || '';
+        document.querySelector('.container-prompmenu').style.display = 'block';
+      }
+      if (data.type === 'hidePrompmenu') {
+        document.querySelector('.container-prompmenu').style.display = 'none';
+      }
+      if (data.type === 'showProp') {
+        document.getElementById('promppropText').textContent = data.text || '';
+        document.querySelector('.container-prompprop').style.display = 'block';
+      }
+      if (data.type === 'hideProp') {
+        document.querySelector('.container-prompprop').style.display = 'none';
+      }
+    });
+
+    function applyPromptTexts() {
+      document.getElementById('craftingMenuTitle').textContent   = prompt.craftingMenu    || 'Menú de Crafteo';
+      document.getElementById('selectCategoryText').textContent  = prompt.selectCategory  || 'Selecciona una categoría';
+      document.getElementById('close-btn').textContent           = prompt.close           || 'Cerrar';
+      const pt = document.getElementById('craftingProgressText');
+      if (pt) pt.textContent = prompt.crafting || 'Crafteando...';
+    }
+
+    document.getElementById("close-btn").addEventListener("click", () => {
+      document.getElementById("crafting-container").classList.add("hidden");
+      document.getElementById("ingredients-panel").classList.add("hidden");
+      fetch(`https://${GetParentResourceName()}/closeMenu`, { method: 'POST' });
+    });
+
+    document.getElementById("close-ingredients-btn").addEventListener("click", () => {
+      document.getElementById("ingredients-panel").classList.add("hidden");
+    });
+  </script>
+</body>
+</html>
