@@ -7,7 +7,7 @@ https://www.paypal.com/donate/?hosted_button_id=NX4ENSGYS6YJN
 # 🛠️ Complete Crafting Script for RSG-Core
 
 # 1️⃣ 📍 Location-based Crafting
-1 - Crafting system based on specific locations with support for:
+Crafting system based on specific locations with support for:
  👮 Job-restricted crafting
  🚫 Crafting without any job requirement
 
