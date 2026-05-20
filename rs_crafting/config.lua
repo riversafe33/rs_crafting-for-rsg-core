@@ -239,4 +239,40 @@ Config.Anim = {
             }
         }
     },
+    ["plane"] = {
+        dict = "amb_work@world_human_wood_plane@working@male_a@base",
+        name = "base",
+        flag = 17,
+        type = 'standard',
+        prop = {
+            model = 'p_hand_plane_001',
+            coords = {
+                x = -0.05,
+                y = 0.0,
+                z = 0.10,
+                xr = 190.0,
+                yr = 0.0,
+                zr = 72.0
+            },
+            bone = 'SKEL_R_Finger13',
+        }
+    },
+    ["saw"] = {
+        dict = "amb_work@world_human_saw_wood@male_a@base",
+        name = "base",
+        flag = 17,
+        type = 'standard',
+        prop = {
+            model = 'p_sawhand01x',
+            coords = {
+                x = 0.35,
+                y = 0.0,
+                z = -0.10,
+                xr = -15.0,
+                yr = 0.0,
+                zr = -95.0
+            },
+            bone = 'IK_R_Hand',
+        }
+    },
 }
