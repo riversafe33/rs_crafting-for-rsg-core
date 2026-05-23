@@ -25,6 +25,7 @@ RegisterNetEvent('rs_crafting:startCrafting', function(craftable, countz)
     local Player = RSGCore.Functions.GetPlayer(_source)
     local playerjob = Player.PlayerData.job.name
 
+    -- Check job
     local canCraft = false
     local allowedJobs = craftable.Job
 
@@ -46,6 +47,7 @@ RegisterNetEvent('rs_crafting:startCrafting', function(craftable, countz)
         return
     end
 
+    -- Check materiales
     for _, item in ipairs(craftable.Items) do
         local hasItem = exports['rsg-inventory']:HasItem(_source, item.name, item.count * countz)
         if not hasItem then
@@ -54,6 +56,7 @@ RegisterNetEvent('rs_crafting:startCrafting', function(craftable, countz)
         end
     end
 
+    -- Check espacio para los rewards ANTES de quitar materiales
     for _, reward in ipairs(craftable.Reward) do
         local canAdd = exports['rsg-inventory']:CanAddItem(_source, reward.name, reward.count * countz)
         if not canAdd then
@@ -62,6 +65,7 @@ RegisterNetEvent('rs_crafting:startCrafting', function(craftable, countz)
         end
     end
 
+    -- Todo ok, quitar materiales y arrancar animacion
     for _, item in ipairs(craftable.Items) do
         exports['rsg-inventory']:RemoveItem(_source, item.name, item.count * countz, nil, 'crafting')
     end
