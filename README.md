@@ -1,4 +1,4 @@
-Donations
+# Buy me a beer :beer:  :heart: 
 
 https://ko-fi.com/riversafe33
 
