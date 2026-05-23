@@ -29,6 +29,7 @@ Config.Texts = {
         space = "You don't have enough space",
         success = "Successful Crafting",
         invalid = "Invalid crafting type",
+        space = "You don't have enough inventory space!",
     },
 }
 
